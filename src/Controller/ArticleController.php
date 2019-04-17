@@ -5,12 +5,12 @@ namespace App\Controller;
 use Michelf\MarkdownInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Response;
-// use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\Cache\Adapter\AdapterInterface;
-
+// use Symfony\Component\Cache\Adapter\AdapterInterface;
+use App\Service\MarkdownHelper;
+use Twig\Environment;
 
 class ArticleController extends AbstractController {
 
@@ -24,10 +24,12 @@ class ArticleController extends AbstractController {
   /**
   * @Route("/news/{slug}", name="article_show")
   */
-  public function show($slug, MarkdownInterface $markdown, AdapterInterface $cache) {
+  public function show($slug, MarkdownHelper $markdownHelper) {
+
     $comments = [
       'Nul', 'Magnifique', 'Comment on démarre symfony ?', 'Sensiolabs are genius...',
     ];
+
     $articleContent = <<<EOF
 Spicy **jalapeno bacon** ipsum dolor amet veniam shank in dolore. Ham hock nisi landjaeger cow,
 lorem proident [beef ribs](https://baconipsum.com/) aute enim veniam ut cillum pork chuck picanha. Dolore reprehenderit
@@ -53,14 +55,16 @@ Minim strip steak fugiat nisi est, meatloaf pig aute. Swine rump turducken nulla
 belly tongue alcatra, shoulder excepteur in beef bresaola duis ham bacon eiusmod. Doner drumstick short loin,
 adipisicing cow cillum tenderloin.
 EOF;
-    $item = $cache->getItem('markdown_'.md5($articleContent));
-    if (!$item->isHit()) {
-      $item->set($markdown->transform($articleContent));
-      $cache->save($item);
-    }
+
+    // $item = $cache->getItem('markdown_'.md5($articleContent));
+    // if (!$item->isHit()) {
+    //   $item->set($markdown->transform($articleContent));
+    //   $cache->save($item);
+    // }
     // dump($markdown);die;
     // dump($cache);die;
-    $articleContent = $item->get();
+    // $articleContent = $item->get();
+    $articleContent = $markdownHelper->parse($articleContent);
     // $articleContent = $markdown->transform($articleContent);
     // dump($slug, $this);
     return $this->render('article/show.html.twig', [
